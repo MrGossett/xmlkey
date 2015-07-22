@@ -1,6 +1,7 @@
 package xmlkey_test
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 
@@ -21,6 +22,23 @@ var keyXML = []byte(`
 
 func ExampleParse() {
 	key, err := xmlkey.Parse(keyXML)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := key.Validate(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Exponent: %d", key.PublicKey.E)
+
+	// Output: Exponent: 65537
+}
+
+func ExampleParse_base64() {
+	b64 := make([]byte, base64.StdEncoding.EncodedLen(len(keyXML)))
+	base64.StdEncoding.Encode(b64, keyXML)
+	key, err := xmlkey.Parse(b64)
 	if err != nil {
 		log.Fatal(err)
 	}
