@@ -6,10 +6,8 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"math/big"
+	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestParse(t *testing.T) {
@@ -17,13 +15,16 @@ func TestParse(t *testing.T) {
 
 	expected := newKey(t)
 	testKey := keyToKeyXML(expected)
+
 	keyXML, err := xml.Marshal(testKey)
-	require.NoError(t, err)
+	fatalIf(t, err)
 
 	actual, err := Parse(keyXML)
+	fatalIf(t, err)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("Keys are not equal.\n\tExpected: %v\n\tActual: %v", expected, actual)
+	}
 }
 
 func TestParsePublic(t *testing.T) {
@@ -31,13 +32,16 @@ func TestParsePublic(t *testing.T) {
 
 	expected := &rsa.PrivateKey{PublicKey: newKey(t).PublicKey}
 	testKey := keyToKeyXML(expected)
+
 	keyXML, err := xml.Marshal(testKey)
-	require.NoError(t, err)
+	fatalIf(t, err)
 
 	actual, err := Parse(keyXML)
+	fatalIf(t, err)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("Keys are not equal.\n\tExpected: %v\n\tActual: %v", expected, actual)
+	}
 }
 
 func TestParseBase64(t *testing.T) {
@@ -45,15 +49,19 @@ func TestParseBase64(t *testing.T) {
 
 	expected := newKey(t)
 	testKey := keyToKeyXML(expected)
+
 	keyXML, err := xml.Marshal(testKey)
-	require.NoError(t, err)
+	fatalIf(t, err)
+
 	b64 := make([]byte, base64.StdEncoding.EncodedLen(len(keyXML)))
 	base64.StdEncoding.Encode(b64, keyXML)
 
 	actual, err := Parse(b64)
+	fatalIf(t, err)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("Keys are not equal.\n\tExpected: %v\n\tActual: %v", expected, actual)
+	}
 }
 
 func TestParsePublicBase64(t *testing.T) {
@@ -61,20 +69,25 @@ func TestParsePublicBase64(t *testing.T) {
 
 	expected := &rsa.PrivateKey{PublicKey: newKey(t).PublicKey}
 	testKey := keyToKeyXML(expected)
+
 	keyXML, err := xml.Marshal(testKey)
-	require.NoError(t, err)
+	fatalIf(t, err)
+
 	b64 := make([]byte, base64.StdEncoding.EncodedLen(len(keyXML)))
 	base64.StdEncoding.Encode(b64, keyXML)
 
 	actual, err := Parse(b64)
+	fatalIf(t, err)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
+	if !reflect.DeepEqual(expected, actual) {
+		t.Errorf("Keys are not equal.\n\tExpected: %v\n\tActual: %v", expected, actual)
+	}
 }
 
 func newKey(t *testing.T) *rsa.PrivateKey {
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	require.NoError(t, err)
+	fatalIf(t, err)
+
 	return testKey
 }
 
@@ -98,4 +111,10 @@ func keyToKeyXML(key *rsa.PrivateKey) keyXML {
 		}
 	}
 	return retKey
+}
+
+func fatalIf(t *testing.T, err error) {
+	if err != nil {
+		t.Fatal(err)
+	}
 }
