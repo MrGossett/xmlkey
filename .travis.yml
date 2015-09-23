@@ -1,6 +1,8 @@
 language: go
 
-go: 1.5
+go:
+  - 1.4
+  - 1.5
 
 before_install:
   - if go get github.com/alecthomas/gometalinter; then gometalinter --install --update; fi
@@ -9,10 +11,10 @@ before_install:
   - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 
 install:
-  - go build -o xmlkey
+  - go build -o xmlkey ./cli
 
 script:
-  - gometalinter ./...
+  - gometalinter -D gotype ./...
   - go get -t
   - $HOME/gopath/bin/goveralls -service=travis-ci -repotoken=$COVERALLS -v
 
@@ -70,3 +72,4 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
+    condition: "$TRAVIS_GO_VERSION == go1.5*"
